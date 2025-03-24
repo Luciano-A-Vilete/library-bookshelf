@@ -26,5 +26,10 @@
   "bugs": {
     "url": "https://github.com/Luciano-A-Vilete/library-bookshelf/issues"
   },
-  "homepage": "https://github.com/Luciano-A-Vilete/library-bookshelf#readme"
+  "homepage": "https://github.com/Luciano-A-Vilete/library-bookshelf#readme",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mongodb": "^6.15.0"
+  }
 }
