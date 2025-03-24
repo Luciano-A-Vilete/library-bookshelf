@@ -1,6 +1,5 @@
 const dotenv = require('dotenv');
 dotenv.config();
-
 const { MongoClient } = require('mongodb');
 
 let database;
@@ -13,7 +12,7 @@ const initDb = async (callback) => {
 
     try {
         const client = await MongoClient.connect(process.env.MONGODB_URI);
-        database = client.db(); // Aqui pegamos a referência ao banco de dados corretamente
+        database = client.db(process.env.DB_NAME); // Pegamos a instância do banco, não do cliente!
         console.log("Banco de dados conectado!");
         callback(null, database);
     } catch (err) {
@@ -26,11 +25,7 @@ const getDatabase = () => {
     if (!database) {
         throw new Error('Database not initialized');
     }
-    return database.db();
+    return database; // Agora retornamos corretamente a instância do banco
 };
 
-
-module.exports = {
-    initDb,
-    getDatabase
-};
+module.exports = { initDb, getDatabase };
