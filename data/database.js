@@ -12,7 +12,7 @@ const initDb = async (callback) => {
 
     try {
         const client = await MongoClient.connect(process.env.MONGODB_URI);
-        database = client.db(process.env.DB_NAME); // Pegamos a instância do banco, não do cliente!
+        database = client.db(process.env.DB_NAME);
         console.log("Banco de dados conectado!");
         callback(null, database);
     } catch (err) {
@@ -25,7 +25,7 @@ const getDatabase = () => {
     if (!database) {
         throw new Error('Database not initialized');
     }
-    return database; // Agora retornamos corretamente a instância do banco
+    return database;
 };
 
 module.exports = { initDb, getDatabase };
