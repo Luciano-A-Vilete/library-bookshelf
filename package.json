@@ -25,12 +25,12 @@
   },
   "homepage": "https://github.com/Luciano-A-Vilete/library-bookshelf#readme",
   "dependencies": {
+    "body-parser": "^1.20.3",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "mongodb": "^6.15.0"
   },
-    "engines": {
-  "node": "18.x"
+  "engines": {
+    "node": "18.x"
   }
-
 }
