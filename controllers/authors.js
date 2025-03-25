@@ -1,109 +1,119 @@
+const { check, validationResult } = require('express-validator');
 const mongodb = require('../data/database');
 const ObjectId = require('mongodb').ObjectId;
 
-const getAll = async (req, res) => {
-    //swagger.tags=['Authors']
+const getAllAuthors = async (req, res, next) => {
     try {
         console.log('Fetching all authors...');
         const result = await mongodb.getDatabase().db('Reading-Tracker').collection('Authors').find();
         const authors = await result.toArray();
-        console.log('Authors fetched:', authors); // Log the authors retrieved
-        res.setHeader('Content-Type', 'application/json');
+        console.log('Authors fetched:', authors);
         res.status(200).json(authors);
     } catch (err) {
-        console.error('Error fetching authors:', err); // Log errors if they occur
-        res.status(500).json({ error: 'Failed to fetch authors.' });
+        console.error('Error fetching authors:', err);
+        next(err);
     }
 };
 
-
-const getSingle = async (req, res) => {
-    //swagger.tags=['Authors']
+const getSingleAuthor = async (req, res, next) => {
     try {
         const authorId = new ObjectId(req.params.id);
-        console.log('Fetching author with ID:', authorId); // Log the author ID being fetched
+        console.log('Fetching author with ID:', authorId);
         const result = await mongodb.getDatabase().db('Reading-Tracker').collection('Authors').find({ _id: authorId });
         const authors = await result.toArray();
-        console.log('Author fetched:', authors[0]); // Log the specific author retrieved
-        res.setHeader('Content-Type', 'application/json');
+        if (!authors[0]) {
+            return res.status(404).json({ error: 'Author not found.' });
+        }
+        console.log('Author fetched:', authors[0]);
         res.status(200).json(authors[0]);
     } catch (err) {
-        console.error('Error fetching author:', err); // Log errors if they occur
-        res.status(500).json({ error: 'Failed to fetch author.' });
+        console.error('Error fetching author:', err);
+        next(err);
     }
 };
 
+const createAuthor = [
+    // Validation rules
+    check('name').notEmpty().withMessage('Name is required'),
+    check('books').isArray().withMessage('Books must be an array'),
 
-const createAuthor = async (req, res) => {
-    //swagger.tags=['Authors']
-    try {
-        console.log('Request body:', req.body); // Log the incoming request data
-        const author = {
-            name: req.body.name,
-            books: req.body.books
-        };
-        console.log('Author to be created:', author); // Log the author object to be inserted
-        const response = await mongodb.getDatabase().db('Reading-Tracker').collection('Authors').insertOne(author);
-        console.log('MongoDB response:', response); // Log the response from MongoDB
-        if (response.insertedId) {
-            res.status(201).send(); // Status 201 for successful creation
-        } else {
-            throw new Error('Failed to insert author');
+    // Handler
+    async (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
         }
-    } catch (err) {
-        console.error('Error creating author:', err); // Log errors
-        res.status(500).json({ error: 'Failed to create author.' });
+
+        try {
+            const author = {
+                name: req.body.name,
+                books: req.body.books,
+            };
+            console.log('Author to be created:', author);
+            const response = await mongodb.getDatabase().db('Reading-Tracker').collection('Authors').insertOne(author);
+            if (response.insertedId) {
+                res.status(201).json({ message: 'Author created successfully.' });
+            } else {
+                throw new Error('Failed to create author.');
+            }
+        } catch (err) {
+            console.error('Error creating author:', err);
+            next(err);
+        }
     }
-};
+];
 
+const updateAuthor = [
+    // Validation rules
+    check('name').notEmpty().withMessage('Name is required'),
+    check('books').isArray().withMessage('Books must be an array'),
 
-const updateAuthor = async (req, res) => {
-    //swagger.tags=['Authors']
+    // Handler
+    async (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        try {
+            const authorId = new ObjectId(req.params.id);
+            const author = {
+                name: req.body.name,
+                books: req.body.books,
+            };
+            console.log('Updating author with ID:', authorId);
+            const response = await mongodb.getDatabase().db('Reading-Tracker').collection('Authors').replaceOne({ _id: authorId }, author);
+            if (response.modifiedCount > 0) {
+                res.status(204).send();
+            } else {
+                throw new Error('Author not updated.');
+            }
+        } catch (err) {
+            console.error('Error updating author:', err);
+            next(err);
+        }
+    }
+];
+
+const deleteAuthor = async (req, res, next) => {
     try {
         const authorId = new ObjectId(req.params.id);
-        console.log('Updating author with ID:', authorId); // Log the author ID being updated
-        console.log('Request body:', req.body); // Log the incoming request data
-        const author = {
-            name: req.body.name,
-            books: req.body.books
-        };
-        console.log('Author to update:', author); // Log the updated author data
-        const response = await mongodb.getDatabase().db('Reading-Tracker').collection('Authors').replaceOne({ _id: authorId }, author);
-        console.log('MongoDB response:', response); // Log the response from MongoDB
-        if (response.modifiedCount > 0) {
-            res.status(204).send(); // Status 204 for successful update
-        } else {
-            throw new Error('No records were updated');
-        }
-    } catch (err) {
-        console.error('Error updating author:', err); // Log errors
-        res.status(500).json({ error: 'Failed to update author.' });
-    }
-};
-
-
-const deleteAuthor = async (req, res) => {
-    //swagger.tags=['Authors']
-    try {
-        const authorId = new ObjectId(req.params.id);
-        console.log('Deleting author with ID:', authorId); // Log the author ID being deleted
+        console.log('Deleting author with ID:', authorId);
         const response = await mongodb.getDatabase().db('Reading-Tracker').collection('Authors').deleteOne({ _id: authorId });
-        console.log('MongoDB response:', response); // Log the response from MongoDB
         if (response.deletedCount > 0) {
-            res.status(204).send(); // Status 204 for successful deletion
+            res.status(204).send();
         } else {
-            throw new Error('No records were deleted');
+            return res.status(404).json({ error: 'Author not found.' });
         }
     } catch (err) {
-        console.error('Error deleting author:', err); // Log errors
-        res.status(500).json({ error: 'Failed to delete author.' });
+        console.error('Error deleting author:', err);
+        next(err);
     }
 };
-
 
 module.exports = {
-    getAll,
-    getSingle,
+    getAllAuthors,
+    getSingleAuthor,
     createAuthor,
     updateAuthor,
     deleteAuthor
