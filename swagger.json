@@ -10,6 +10,16 @@
   "schemes": [
     "https"
   ],
+  "tags": [
+    {
+      "name": "Books",
+      "description": "Endpoints related to books management"
+    },
+    {
+      "name": "Authors",
+      "description": "Endpoints related to authors management"
+    }
+  ],
   "paths": {
     "/": {
       "get": {
@@ -23,7 +33,8 @@
     },
     "/books/": {
       "get": {
-        "description": "",
+        "tags": ["Books"],
+        "description": "Retrieve all books",
         "produces": [
           "application/json"
         ],
@@ -37,7 +48,8 @@
         }
       },
       "post": {
-        "description": "",
+        "tags": ["Books"],
+        "description": "Create a new book",
         "parameters": [
           {
             "name": "body",
@@ -76,7 +88,8 @@
     },
     "/books/{id}": {
       "get": {
-        "description": "",
+        "tags": ["Books"],
+        "description": "Retrieve a book by ID",
         "produces": [
           "application/json"
         ],
@@ -98,7 +111,8 @@
         }
       },
       "put": {
-        "description": "",
+        "tags": ["Books"],
+        "description": "Update a book by ID",
         "parameters": [
           {
             "name": "id",
@@ -141,7 +155,8 @@
         }
       },
       "delete": {
-        "description": "",
+        "tags": ["Books"],
+        "description": "Delete a book by ID",
         "parameters": [
           {
             "name": "id",
@@ -162,7 +177,8 @@
     },
     "/authors/": {
       "get": {
-        "description": "",
+        "tags": ["Authors"],
+        "description": "Retrieve all authors",
         "produces": [
           "application/json"
         ],
@@ -176,7 +192,8 @@
         }
       },
       "post": {
-        "description": "",
+        "tags": ["Authors"],
+        "description": "Create a new author",
         "parameters": [
           {
             "name": "body",
@@ -206,7 +223,8 @@
     },
     "/authors/{id}": {
       "get": {
-        "description": "",
+        "tags": ["Authors"],
+        "description": "Retrieve an author by ID",
         "produces": [
           "application/json"
         ],
@@ -228,7 +246,8 @@
         }
       },
       "put": {
-        "description": "",
+        "tags": ["Authors"], 
+        "description": "Update an author by ID",
         "parameters": [
           {
             "name": "id",
@@ -262,7 +281,8 @@
         }
       },
       "delete": {
-        "description": "",
+        "tags": ["Authors"],
+        "description": "Delete an author by ID",
         "parameters": [
           {
             "name": "id",
