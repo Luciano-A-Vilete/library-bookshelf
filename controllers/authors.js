@@ -2,6 +2,7 @@ const mongodb = require('../data/database');
 const ObjectId = require('mongodb').ObjectId;
 
 const getAll = async (req, res) => {
+    //swagger.tags=['Authors']
     try {
         console.log('Fetching all authors...');
         const result = await mongodb.getDatabase().db('Reading-Tracker').collection('Authors').find();
@@ -17,6 +18,7 @@ const getAll = async (req, res) => {
 
 
 const getSingle = async (req, res) => {
+    //swagger.tags=['Authors']
     try {
         const authorId = new ObjectId(req.params.id);
         console.log('Fetching author with ID:', authorId); // Log the author ID being fetched
@@ -33,6 +35,7 @@ const getSingle = async (req, res) => {
 
 
 const createAuthor = async (req, res) => {
+    //swagger.tags=['Authors']
     try {
         console.log('Request body:', req.body); // Log the incoming request data
         const author = {
@@ -55,6 +58,7 @@ const createAuthor = async (req, res) => {
 
 
 const updateAuthor = async (req, res) => {
+    //swagger.tags=['Authors']
     try {
         const authorId = new ObjectId(req.params.id);
         console.log('Updating author with ID:', authorId); // Log the author ID being updated
@@ -79,6 +83,7 @@ const updateAuthor = async (req, res) => {
 
 
 const deleteAuthor = async (req, res) => {
+    //swagger.tags=['Authors']
     try {
         const authorId = new ObjectId(req.params.id);
         console.log('Deleting author with ID:', authorId); // Log the author ID being deleted
