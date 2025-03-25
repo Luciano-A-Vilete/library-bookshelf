@@ -24,7 +24,7 @@ const createAuthor = async (req, res) => {
         books: req.body.books
         };
     const response = await mongodb.getDatabase().db().collection('Authors').insertOne(author);
-    if (response.modifiedCount > 0) {
+    if (response.insertedId > 0) {
         res.status(204).send();
     } else {
         res.status(500).json(response.error || 'Some error occurred while creating an author');
@@ -38,7 +38,7 @@ const updateAuthor = async (req, res) => {
         books: req.body.books
         };
     const response = await mongodb.getDatabase().db().collection('Authors').replaceOne({ _id: authorId }, author);
-    if (response.modifiedCount > 0) {
+    if (response.matchedCount > 0) {
         res.status(204).send();
     } else {
         res.status(500).json(response.error || 'Some error occurred while updating an author');
@@ -47,7 +47,7 @@ const updateAuthor = async (req, res) => {
 
 const deleteAuthor = async (req, res) => {
     const authorId = new ObjectId(req.params.id);
-    const response = await mongodb.getDatabase().db().collection('Authors').remove({ _id: authorId }, true);
+    const response = await mongodb.getDatabase().db().collection('Authors').deleteOne({ _id: authorId }, true);
     if (response.deletedCount > 0) {
         res.status(204).send();
     } else {
