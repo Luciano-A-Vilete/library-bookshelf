@@ -41,7 +41,7 @@ const createBook = [
     check('author').notEmpty().withMessage('Author is required'),
     check('publisher').notEmpty().withMessage('Publisher is required'),
     check('category').notEmpty().withMessage('Category is required'),
-    check('totalPages').isInt({ gt: 0 }).withMessage('Total pages must be a positive integer'),
+    check('totalpages').isInt({ gt: 0 }).withMessage('Total pages must be a positive integer'),
 
     // Handler
     async (req, res, next) => {
@@ -102,7 +102,7 @@ const updateBook = [
     check('author').notEmpty().withMessage('Author is required'),
     check('publisher').notEmpty().withMessage('Publisher is required'),
     check('category').notEmpty().withMessage('Category is required'),
-    check('totalPages').isInt({ gt: 0 }).withMessage('Total pages must be a positive integer'),
+    check('totalpages').isInt({ gt: 0 }).withMessage('Total pages must be a positive integer'),
 
     // Handler
     async (req, res, next) => {
