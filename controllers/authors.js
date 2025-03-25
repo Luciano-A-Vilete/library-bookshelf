@@ -39,6 +39,13 @@ const createAuthor = [
 
     // Handler
     async (req, res, next) => {
+        // Normalizar o payload para que os campos sejam convertidos para letras minúsculas
+        const normalizedBody = {};
+        Object.keys(req.body).forEach((key) => {
+            normalizedBody[key.toLowerCase()] = req.body[key];
+        });
+        req.body = normalizedBody;
+
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
@@ -81,6 +88,13 @@ const updateAuthor = [
 
     // Handler
     async (req, res, next) => {
+        // Normalizador do payload para campos minúsculos
+        const normalizedBody = {};
+        Object.keys(req.body).forEach((key) => {
+            normalizedBody[key.toLowerCase()] = req.body[key];
+        });
+        req.body = normalizedBody;
+
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
@@ -134,8 +148,18 @@ const updateAuthor = [
     }
 ];
 
+
 const deleteAuthor = async (req, res, next) => {
     try {
+        // Normalizador do payload para garantir consistência (não usado diretamente nesta rota)
+        if (req.body) {
+            const normalizedBody = {};
+            Object.keys(req.body).forEach((key) => {
+                normalizedBody[key.toLowerCase()] = req.body[key];
+            });
+            req.body = normalizedBody;
+        }
+
         const authorId = new ObjectId(req.params.id);
 
         // Fetch the author to be deleted
@@ -158,6 +182,7 @@ const deleteAuthor = async (req, res, next) => {
         next(err);
     }
 };
+
 
 module.exports = {
     getAllAuthors,

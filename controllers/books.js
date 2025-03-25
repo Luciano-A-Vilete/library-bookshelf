@@ -45,6 +45,13 @@ const createBook = [
 
     // Handler
     async (req, res, next) => {
+        // Normalizar o payload para que os campos sejam convertidos para letras minúsculas
+        const normalizedBody = {};
+        Object.keys(req.body).forEach((key) => {
+            normalizedBody[key.toLowerCase()] = req.body[key];
+        });
+        req.body = normalizedBody;
+
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
@@ -87,6 +94,7 @@ const createBook = [
     }
 ];
 
+
 // Update a book
 const updateBook = [
     // Validation rules
@@ -98,6 +106,13 @@ const updateBook = [
 
     // Handler
     async (req, res, next) => {
+        // Normalizar o payload para que os campos sejam convertidos para letras minúsculas
+        const normalizedBody = {};
+        Object.keys(req.body).forEach((key) => {
+            normalizedBody[key.toLowerCase()] = req.body[key];
+        });
+        req.body = normalizedBody;
+
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
@@ -144,9 +159,19 @@ const updateBook = [
     }
 ];
 
+
 // Delete a book
 const deleteBook = async (req, res, next) => {
     try {
+        // Normalizador do payload para garantir consistência, caso req.body seja usado futuramente
+        if (req.body) {
+            const normalizedBody = {};
+            Object.keys(req.body).forEach((key) => {
+                normalizedBody[key.toLowerCase()] = req.body[key];
+            });
+            req.body = normalizedBody;
+        }
+
         const bookId = new ObjectId(req.params.id);
 
         // Fetch the book to be deleted
@@ -172,6 +197,7 @@ const deleteBook = async (req, res, next) => {
         next(err);
     }
 };
+
 
 module.exports = {
     getAllBooks,
