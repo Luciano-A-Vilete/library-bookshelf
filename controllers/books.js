@@ -45,7 +45,7 @@ const createBook = [
 
     // Handler
     async (req, res, next) => {
-        // Normalize the payload
+        
         const normalizedBody = {};
         Object.keys(req.body).forEach((key) => {
             const lowerCaseKey = key.toLowerCase();
@@ -62,7 +62,7 @@ const createBook = [
                 case 'category':
                     normalizedBody['category'] = req.body[key];
                     break;
-                case 'totalpages': // Map 'totalpages' to 'totalPages'
+                case 'totalpages': 
                     normalizedBody['totalPages'] = req.body[key];
                     break;
                 default:
@@ -79,25 +79,20 @@ const createBook = [
         try {
             const { title, author, publisher, category, totalPages } = req.body;
 
-            // Log the book object for debugging
             const book = { title, author, publisher, category, totalPages };
-            console.log('Book to be inserted:', book);
 
-            // Insert the book into the books collection
             const bookResponse = await mongodb.getDatabase().db('Reading-Tracker').collection('Books').insertOne(book);
             console.log('Book created:', bookResponse);
 
-            // Check if the author exists in the authors collection
             const authorResponse = await mongodb.getDatabase().db('Reading-Tracker').collection('Authors').findOne({ name: author });
             if (authorResponse) {
-                // Update the books field for the author
+                
                 const updateResponse = await mongodb.getDatabase().db('Reading-Tracker').collection('Authors').updateOne(
                     { name: author },
                     { $push: { books: title } }
                 );
                 console.log('Author updated with new book:', updateResponse);
             } else {
-                // Author doesn't exist, create a new author entry
                 const newAuthor = {
                     name: author,
                     books: [title]
@@ -113,8 +108,6 @@ const createBook = [
         }
     }
 ];
-
-
 
 // Update a book
 const updateBook = [
@@ -175,7 +168,7 @@ const updateBook = [
             );
             console.log('Book updated:', updateResponse);
 
-            // If the author changes, update the authors collection
+            // If the author changes, update the authors collection by searching for the name
             if (existingBook.author !== author) {
                 // Remove the book from the previous author's books array
                 await mongodb.getDatabase().db('Reading-Tracker').collection('Authors').updateOne(
@@ -198,6 +191,7 @@ const updateBook = [
         }
     }
 ];
+
 
 
 
