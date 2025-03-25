@@ -43,7 +43,6 @@ const createBook = [
     check('category').notEmpty().withMessage('Category is required'),
     check('totalPages').isInt({ gt: 0 }).withMessage('Total pages must be a positive integer'),
 
-    // Handler
     async (req, res, next) => {
         
         const normalizedBody = {};
@@ -62,7 +61,7 @@ const createBook = [
                 case 'category':
                     normalizedBody['category'] = req.body[key];
                     break;
-                case 'totalpages': 
+                case 'totalpages': // Map 'totalpages' to 'totalPages'
                     normalizedBody['totalPages'] = req.body[key];
                     break;
                 default:
@@ -79,20 +78,26 @@ const createBook = [
         try {
             const { title, author, publisher, category, totalPages } = req.body;
 
+            
             const book = { title, author, publisher, category, totalPages };
 
+            
             const bookResponse = await mongodb.getDatabase().db('Reading-Tracker').collection('Books').insertOne(book);
             console.log('Book created:', bookResponse);
 
-            const authorResponse = await mongodb.getDatabase().db('Reading-Tracker').collection('Authors').findOne({ name: author });
+            
+            const authorResponse = await mongodb.getDatabase().db('Reading-Tracker').collection('Authors').findOne({
+                name: { $regex: new RegExp(`^${author}$`, 'i') }
+            });
             if (authorResponse) {
                 
                 const updateResponse = await mongodb.getDatabase().db('Reading-Tracker').collection('Authors').updateOne(
-                    { name: author },
+                    { name: authorResponse.name },
                     { $push: { books: title } }
                 );
                 console.log('Author updated with new book:', updateResponse);
             } else {
+                
                 const newAuthor = {
                     name: author,
                     books: [title]
