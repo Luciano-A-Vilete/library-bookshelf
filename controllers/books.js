@@ -45,10 +45,29 @@ const createBook = [
 
     // Handler
     async (req, res, next) => {
-        // Normalizar o payload para que os campos sejam convertidos para letras minúsculas
+        // Normalize the payload
         const normalizedBody = {};
         Object.keys(req.body).forEach((key) => {
-            normalizedBody[key.toLowerCase()] = req.body[key];
+            const lowerCaseKey = key.toLowerCase();
+            switch (lowerCaseKey) {
+                case 'title':
+                    normalizedBody['title'] = req.body[key];
+                    break;
+                case 'author':
+                    normalizedBody['author'] = req.body[key];
+                    break;
+                case 'publisher':
+                    normalizedBody['publisher'] = req.body[key];
+                    break;
+                case 'category':
+                    normalizedBody['category'] = req.body[key];
+                    break;
+                case 'totalpages': // Map 'totalpages' to 'totalPages'
+                    normalizedBody['totalPages'] = req.body[key];
+                    break;
+                default:
+                    normalizedBody[lowerCaseKey] = req.body[key];
+            }
         });
         req.body = normalizedBody;
 
@@ -60,8 +79,9 @@ const createBook = [
         try {
             const { title, author, publisher, category, totalPages } = req.body;
 
-            // Create the book object
+            // Log the book object for debugging
             const book = { title, author, publisher, category, totalPages };
+            console.log('Book to be inserted:', book);
 
             // Insert the book into the books collection
             const bookResponse = await mongodb.getDatabase().db('Reading-Tracker').collection('Books').insertOne(book);
@@ -95,6 +115,7 @@ const createBook = [
 ];
 
 
+
 // Update a book
 const updateBook = [
     // Validation rules
@@ -109,7 +130,26 @@ const updateBook = [
         // Normalizar o payload para que os campos sejam convertidos para letras minúsculas
         const normalizedBody = {};
         Object.keys(req.body).forEach((key) => {
-            normalizedBody[key.toLowerCase()] = req.body[key];
+            const lowerCaseKey = key.toLowerCase();
+            switch (lowerCaseKey) {
+                case 'title':
+                    normalizedBody['title'] = req.body[key];
+                    break;
+                case 'author':
+                    normalizedBody['author'] = req.body[key];
+                    break;
+                case 'publisher':
+                    normalizedBody['publisher'] = req.body[key];
+                    break;
+                case 'category':
+                    normalizedBody['category'] = req.body[key];
+                    break;
+                case 'totalpages': // Map 'totalpages' to 'totalPages'
+                    normalizedBody['totalPages'] = req.body[key];
+                    break;
+                default:
+                    normalizedBody[lowerCaseKey] = req.body[key];
+            }
         });
         req.body = normalizedBody;
 
@@ -158,6 +198,7 @@ const updateBook = [
         }
     }
 ];
+
 
 
 // Delete a book
