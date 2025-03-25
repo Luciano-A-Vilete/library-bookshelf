@@ -179,4 +179,4 @@ module.exports = {
     createBook,
     updateBook,
     deleteBook
-}
+};
