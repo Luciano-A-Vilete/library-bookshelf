@@ -51,22 +51,37 @@ const createBook = [
         }
 
         try {
-            const book = {
-                title: req.body.title,
-                author: req.body.author,
-                publisher: req.body.publisher,
-                category: req.body.category,
-                totalPages: req.body.totalPages,
-            };
-            console.log('Book to be created:', book);
-            const response = await mongodb.getDatabase().db('Reading-Tracker').collection('Books').insertOne(book);
-            if (response.insertedId) {
-                res.status(201).json({ message: 'Book created successfully.' });
+            const { title, author, publisher, category, totalPages } = req.body;
+
+            // Create the book object
+            const book = { title, author, publisher, category, totalPages };
+
+            // Insert the book into the books collection
+            const bookResponse = await mongodb.getDatabase().db('Reading-Tracker').collection('Books').insertOne(book);
+            console.log('Book created:', bookResponse);
+
+            // Check if the author exists in the authors collection
+            const authorResponse = await mongodb.getDatabase().db('Reading-Tracker').collection('Authors').findOne({ name: author });
+            if (authorResponse) {
+                // Update the books field for the author
+                const updateResponse = await mongodb.getDatabase().db('Reading-Tracker').collection('Authors').updateOne(
+                    { name: author },
+                    { $push: { books: title } }
+                );
+                console.log('Author updated with new book:', updateResponse);
             } else {
-                throw new Error('Failed to create book.');
+                // Author doesn't exist, create a new author entry
+                const newAuthor = {
+                    name: author,
+                    books: [title]
+                };
+                const newAuthorResponse = await mongodb.getDatabase().db('Reading-Tracker').collection('Authors').insertOne(newAuthor);
+                console.log('New author created:', newAuthorResponse);
             }
+
+            res.status(201).json({ message: 'Book created and author updated dynamically.' });
         } catch (err) {
-            console.error('Error creating book:', err);
+            console.error('Error creating book dynamically:', err);
             next(err);
         }
     }
@@ -90,22 +105,40 @@ const updateBook = [
 
         try {
             const bookId = new ObjectId(req.params.id);
-            const book = {
-                title: req.body.title,
-                author: req.body.author,
-                publisher: req.body.publisher,
-                category: req.body.category,
-                totalPages: req.body.totalPages,
-            };
-            console.log('Updating book with ID:', bookId);
-            const response = await mongodb.getDatabase().db('Reading-Tracker').collection('Books').replaceOne({ _id: bookId }, book);
-            if (response.modifiedCount > 0) {
-                res.status(204).send();
-            } else {
-                throw new Error('Book not updated.');
+            const { title, author, publisher, category, totalPages } = req.body;
+
+            // Fetch the existing book
+            const existingBook = await mongodb.getDatabase().db('Reading-Tracker').collection('Books').findOne({ _id: bookId });
+            if (!existingBook) {
+                return res.status(404).json({ error: 'Book not found.' });
             }
+
+            // Update the book
+            const updateResponse = await mongodb.getDatabase().db('Reading-Tracker').collection('Books').updateOne(
+                { _id: bookId },
+                { $set: { title, author, publisher, category, totalPages } }
+            );
+            console.log('Book updated:', updateResponse);
+
+            // If the author changes, update the authors collection
+            if (existingBook.author !== author) {
+                // Remove the book from the previous author's books array
+                await mongodb.getDatabase().db('Reading-Tracker').collection('Authors').updateOne(
+                    { name: existingBook.author },
+                    { $pull: { books: existingBook.title } }
+                );
+
+                // Add the book to the new author's books array
+                await mongodb.getDatabase().db('Reading-Tracker').collection('Authors').updateOne(
+                    { name: author },
+                    { $push: { books: title } },
+                    { upsert: true }
+                );
+            }
+
+            res.status(200).json({ message: 'Book updated dynamically.' });
         } catch (err) {
-            console.error('Error updating book:', err);
+            console.error('Error updating book dynamically:', err);
             next(err);
         }
     }
@@ -115,15 +148,27 @@ const updateBook = [
 const deleteBook = async (req, res, next) => {
     try {
         const bookId = new ObjectId(req.params.id);
-        console.log('Deleting book with ID:', bookId);
-        const response = await mongodb.getDatabase().db('Reading-Tracker').collection('Books').deleteOne({ _id: bookId });
-        if (response.deletedCount > 0) {
-            res.status(204).send();
-        } else {
+
+        // Fetch the book to be deleted
+        const book = await mongodb.getDatabase().db('Reading-Tracker').collection('Books').findOne({ _id: bookId });
+        if (!book) {
             return res.status(404).json({ error: 'Book not found.' });
         }
+
+        // Delete the book
+        const deleteResponse = await mongodb.getDatabase().db('Reading-Tracker').collection('Books').deleteOne({ _id: bookId });
+        console.log('Book deleted:', deleteResponse);
+
+        // Remove the book from the author's books array
+        const authorUpdateResponse = await mongodb.getDatabase().db('Reading-Tracker').collection('Authors').updateOne(
+            { name: book.author },
+            { $pull: { books: book.title } }
+        );
+        console.log('Author updated after book deletion:', authorUpdateResponse);
+
+        res.status(204).send();
     } catch (err) {
-        console.error('Error deleting book:', err);
+        console.error('Error deleting book dynamically:', err);
         next(err);
     }
 };
