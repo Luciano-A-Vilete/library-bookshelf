@@ -54,24 +54,30 @@ const createAuthor = [
         try {
             const { name, books } = req.body;
 
-            // Create the author object
+            // Criar o objeto do autor
             const author = { name, books };
 
-            // Insert the author into the authors collection
+            // Verificar se o autor já existe na coleção
+            const existingAuthor = await mongodb.getDatabase().db('Reading-Tracker').collection('Authors').findOne({ name });
+            if (existingAuthor) {
+                return res.status(400).json({ error: 'Author already exists. Use updateAuthor to modify the data.' });
+            }
+
+            // Inserir o autor na coleção de autores
             const authorResponse = await mongodb.getDatabase().db('Reading-Tracker').collection('Authors').insertOne(author);
             console.log('Author created:', authorResponse);
 
-            // Insert each book into the books collection
+            // Sincronizar os livros na coleção de livros
             const bookPromises = books.map(async (title) => {
                 const book = { title, author: name };
                 const bookResponse = await mongodb.getDatabase().db('Reading-Tracker').collection('Books').updateOne(
-                    { title },
+                    { title }, // Busca pelo título do livro
                     { $set: book },
-                    { upsert: true } // Create the book if it doesn't exist
+                    { upsert: true } // Criar o livro se ele ainda não existir
                 );
                 console.log('Book added dynamically:', bookResponse);
             });
-            await Promise.all(bookPromises); // Ensure all books are added
+            await Promise.all(bookPromises); // Garantir que todos os livros sejam adicionados
 
             res.status(201).json({ message: 'Author created and books added dynamically.' });
         } catch (err) {
@@ -88,7 +94,7 @@ const updateAuthor = [
 
     // Handler
     async (req, res, next) => {
-        // Normalizador do payload para campos minúsculos
+        // Normalizar o payload para que os campos sejam convertidos para letras minúsculas
         const normalizedBody = {};
         Object.keys(req.body).forEach((key) => {
             normalizedBody[key.toLowerCase()] = req.body[key];
@@ -104,31 +110,31 @@ const updateAuthor = [
             const authorId = new ObjectId(req.params.id);
             const { name, books } = req.body;
 
-            // Fetch the existing author
-            const existingAuthor = await mongodb.getDatabase().db('Reading-Tracker').collection('Authors').findOne({ _id: authorId });
+            // Buscar o autor existente pelo "name" ao invés do "_id"
+            const existingAuthor = await mongodb.getDatabase().db('Reading-Tracker').collection('Authors').findOne({ name });
             if (!existingAuthor) {
                 return res.status(404).json({ error: 'Author not found.' });
             }
 
-            // Update the author
+            // Atualizar o autor
             const updateResponse = await mongodb.getDatabase().db('Reading-Tracker').collection('Authors').updateOne(
-                { _id: authorId },
-                { $set: { name, books } }
+                { name },
+                { $set: { books } }
             );
             console.log('Author updated:', updateResponse);
 
-            // Synchronize books collection
+            // Sincronizar a coleção de livros
             const booksToRemove = existingAuthor.books.filter((book) => !books.includes(book));
             const booksToAdd = books.filter((book) => !existingAuthor.books.includes(book));
 
-            // Remove books no longer associated with the author
+            // Remover os livros que não estão mais associados ao autor
             const removeOldBooksPromises = booksToRemove.map(async (title) => {
-                const response = await mongodb.getDatabase().db('Reading-Tracker').collection('Books').deleteOne({ title, author: existingAuthor.name });
+                const response = await mongodb.getDatabase().db('Reading-Tracker').collection('Books').deleteOne({ title, author: name });
                 console.log('Book removed dynamically:', response);
             });
             await Promise.all(removeOldBooksPromises);
 
-            // Add new books to the books collection
+            // Adicionar os novos livros à coleção de livros
             const addNewBooksPromises = booksToAdd.map(async (title) => {
                 const book = { title, author: name };
                 const response = await mongodb.getDatabase().db('Reading-Tracker').collection('Books').updateOne(
@@ -147,7 +153,6 @@ const updateAuthor = [
         }
     }
 ];
-
 
 const deleteAuthor = async (req, res, next) => {
     try {
