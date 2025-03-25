@@ -2,9 +2,9 @@ const routes = require('express').Router();
 
 const bookController = require('../controllers/books');
 
-routes.get('/', bookController.getAll);
+routes.get('/', bookController.getAllBooks);
 
-routes.get('/:id', bookController.getSingle);
+routes.get('/:id', bookController.getSingleBook);
 
 routes.post('/', bookController.createBook);
 
