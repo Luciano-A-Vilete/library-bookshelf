@@ -4,34 +4,32 @@
 const dotenv = require('dotenv').config();
 const { MongoClient } = require('mongodb');
 
-let dbInstance; // Variable to store the initialized database instance
+let database; // Variable to store the initialized database instance
 
-// Function to initialize the database connection
-const initDb = async (callback) => {
+const initDb = (callback) => {
   // If the database is already initialized, return it via callback
-  if (dbInstance) {
+  if (database) {
     console.log('Database is already initialized');
-    return callback(null, dbInstance);
+    return callback(null, database);
   }
-  try {
-    // Connect to MongoDB using the URI from environment variables
-    const client = await MongoClient.connect(process.env.MONGODB_URI, { useUnifiedTopology: true });
-    // Get the default database specified in the URI
-    dbInstance = client.db();
-    console.log('Successfully connected to MongoDB');
-    return callback(null, dbInstance);
-  } catch (error) {
-    // Return the error via callback if the connection fails
-    return callback(error);
-  }
+  // Connect to MongoDB using the URI from environment variables
+  MongoClient.connect(process.env.MONGODB_URI, { useUnifiedTopology: true })
+    .then((client) => {
+      // Specify the database name (e.g., "Reading-Tracker") you want to use
+      database = client.db('Reading-Tracker');
+      console.log('Successfully connected to database: Reading-Tracker');
+      callback(null, database);
+    })
+    .catch((error) => {
+      callback(error);
+    });
 };
 
-// Function to retrieve the initialized database instance
 const getDatabase = () => {
-  if (!dbInstance) {
+  if (!database) {
     throw new Error('Database not initialized');
   }
-  return dbInstance;
+  return database;
 };
 
 module.exports = {
